@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poetry - Editor de Poemas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Calibri', 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .top-bar label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-right: 6px;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
+        }
+
+        .alignment-group {
+            display: flex;
+            gap: 2px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .align-btn {
+            padding: 6px 10px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            color: #333;
+            font-size: 13px;
+            transition: background 0.2s;
+            border-right: 1px solid #ddd;
+        }
+
+        .align-btn:last-child {
+            border-right: none;
+        }
+
+        .align-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .align-btn.active {
+            background: #e7f3ff;
+            color: #0078d4;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr 200px;
+            gap: 0;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar-left {
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .sidebar-left h2 {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-new {
+            width: 100%;
+            padding: 10px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn-new:hover {
+            background: #005fa3;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .poems-list {
+            list-style: none;
+        }
+
+        .poem-item {
+            padding: 10px;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            border-radius: 2px;
+        }
+
+        .poem-item:hover {
+            background: #f5f5f5;
+            border-left-color: #0078d4;
+        }
+
+        .poem-item.active {
+            background: #e7f3ff;
+            border-left-color: #0078d4;
+        }
+
+        .poem-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .poem-item-book {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .main {
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-container {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-paper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 60px;
+            background: white;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            font-family: 'Georgia', serif;
+            font-size: 16px;
+            line-height: 1.8;
+            resize: none;
+            color: #333;
+        }
+
+        .sidebar-right {
+            background: white;
+            border-left: 1px solid #e0e0e0;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-section {
+            margin-bottom: 20px;
+        }
+
+        .right-section h3 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-family: inherit;
+        }
+
+        .export-btn {
+            width: 100%;
+            padding: 8px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            transition: all 0.2s;
+            margin-bottom: 6px;
+        }
+
+        .export-btn:hover {
+            background: #f5f5f5;
+            border-color: #0078d4;
+            color: #0078d4;
+        }
+
+        .delete-btn {
+            width: 100%;
+            padding: 8px;
+            background: white;
+            border: 1px solid #d13438;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #d13438;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .delete-btn:hover {
+            background: #fdeef0;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            font-size: 12px;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+
+        .stat-item {
+            background: #f9f9f9;
+            padding: 8px;
+            border-radius: 3px;
+            border-left: 3px solid #0078d4;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #999;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0078d4;
+        }
+
+        .font-controls {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .font-control-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .font-control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .font-control-row label {
+            font-weight: 600;
+            color: #666;
+            min-width: 80px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 25px;
+            border-radius: 4px;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .modal-box h2 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            font-family: inherit;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .modal-buttons .confirm {
+            background: #0078d4;
+            color: white;
+        }
+
+        .modal-buttons .confirm:hover {
+            background: #005fa3;
+        }
+
+        .modal-buttons .cancel {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .modal-buttons .cancel:hover {
+            background: #ececec;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .sidebar-left, .sidebar-right {
+                max-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 10px 15px;
+                gap: 10px;
+            }
+
+            .top-bar label {
+                font-size: 11px;
+            }
+
+            select, input[type="number"] {
+                font-size: 12px;
+                padding: 5px 8px;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .sidebar-left {
+                display: none;
+            }
+
+            .sidebar-right {
+                display: none;
+            }
+
+            .main {
+                min-height: calc(100vh - 80px);
+            }
+
+            .editor-paper {
+                padding: 20px 15px;
+            }
+
+            textarea {
+                font-size: 14px;
+                min-height: 300px;
+            }
+
+            .font-controls {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .top-bar {
+                padding: 8px 10px;
+                gap: 8px;
+            }
+
+            .top-bar label {
+                display: none;
+            }
+
+            select, input[type="number"], input[type="text"] {
+                font-size: 11px;
+                padding: 5px 6px;
+            }
+
+            textarea {
+                font-size: 13px;
+                min-height: 250px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div>
+            <label>Tipografía:</label>
+            <select id="fontFamily" onchange="applyFormat()">
+                <option value="Georgia, serif">Georgia</option>
+                <option value="Times New Roman, serif">Times New Roman</option>
+                <option value="Garamond, serif">Garamond</option>
+                <option value="Courier New, monospace">Courier New</option>
+                <option value="Calibri, sans-serif">Calibri</option>
+                <option value="Arial, sans-serif">Arial</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Tamaño:</label>
+            <input type="number" id="fontSize" value="16" min="10" max="32" style="width: 50px;" onchange="applyFormat()"> px
+        </div>
+
+        <div>
+            <label>Alineación:</label>
+            <div class="alignment-group">
+                <button class="align-btn active" onclick="setAlign('left')" title="Izquierda">≡</button>
+                <button class="align-btn" onclick="setAlign('center')" title="Centrado">≣</button>
+                <button class="align-btn" onclick="setAlign('right')" title="Derecha">≢</button>
+            </div>
+        </div>
+
+        <div style="margin-left: auto;">
+            <label>Página:</label>
+            <select id="pageSize" onchange="savePoem()">
+                <option value="a4">A4</option>
+                <option value="letter">Letter</option>
+                <option value="a3">A3</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- SIDEBAR IZQUIERDO -->
+        <div class="sidebar-left">
+            <h2>Poemas</h2>
+            <button class="btn-new" onclick="newPoem()">+ Nuevo</button>
+            <input type="text" class="search-input" id="search" placeholder="Buscar..." onkeyup="filterPoems()">
+            <ul class="poems-list" id="poemsList"></ul>
+        </div>
+
+        <!-- EDITOR PRINCIPAL -->
+        <div class="main">
+            <div class="editor-container">
+                <div class="editor-paper">
+                    <textarea id="editor" placeholder="Escribe tu poema aquí..." onchange="savePoem()" oninput="updateStats()"></textarea>
+                    <div class="stats-container">
+                        <div class="stat-item">
+                            <div class="stat-label">Palabras</div>
+                            <div class="stat-value" id="wordCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Caracteres</div>
+                            <div class="stat-value" id="charCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Líneas</div>
+                            <div class="stat-value" id="lineCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Caracteres sin espacios</div>
+                            <div class="stat-value" id="charNoSpaceCount">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR DERECHO -->
+        <div class="sidebar-right">
+            <div class="right-section">
+                <h3>Información</h3>
+                <input type="text" class="input-field" id="poemTitle" placeholder="Título del poema" onchange="savePoem()">
+                <input type="text" class="input-field" id="bookName" placeholder="Nombre del libro" onchange="savePoem()">
+            </div>
+
+            <div class="right-section">
+                <h3>Tipografía Título</h3>
+                <div class="font-controls">
+                    <div class="font-control-row">
+                        <label>Fuente:</label>
+                        <select id="titleFont" onchange="savePoem()" style="flex: 1;">
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="Times New Roman, serif">Times New Roman</option>
+                            <option value="Garamond, serif">Garamond</option>
+                            <option value="Courier New, monospace">Courier New</option>
+                            <option value="Calibri, sans-serif">Calibri</option>
+                            <option value="Arial, sans-serif">Arial</option>
+                        </select>
+                    </div>
+                    <div class="font-control-row">
+                        <label>Tamaño:</label>
+                        <input type="number" id="titleSize" value="28" min="12" max="48" onchange="savePoem()" style="width: 50px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-section">
+                <h3>Tipografía Libro</h3>
+                <div class="font-controls">
+                    <div class="font-control-row">
+                        <label>Fuente:</label>
+                        <select id="bookFont" onchange="savePoem()" style="flex: 1;">
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="Times New Roman, serif">Times New Roman</option>
+                            <option value="Garamond, serif">Garamond</option>
+                            <option value="Courier New, monospace">Courier New</option>
+                            <option value="Calibri, sans-serif">Calibri</option>
+                            <option value="Arial, sans-serif">Arial</option>
+                        </select>
+                    </div>
+                    <div class="font-control-row">
+                        <label>Tamaño:</label>
+                        <input type="number" id="bookSize" value="14" min="10" max="28" onchange="savePoem()" style="width: 50px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-section" style="flex: 1; overflow-y: auto;">
+                <h3>Estadísticas</h3>
+                <div class="info-box">
+                    <div id="stats"></div>
+                </div>
+            </div>
+
+            <div class="right-section">
+                <h3>Exportar</h3>
+                <button class="export-btn" onclick="exportPDF()">📄 PDF</button>
+                <button class="export-btn" onclick="exportTXT()">📝 TXT</button>
+                <button class="export-btn" onclick="exportHTML()">🔗 HTML</button>
+                <button class="export-btn" onclick="exportMD()">✏️ Markdown</button>
+            </div>
+
+            <button class="delete-btn" onclick="deletePoem()">Eliminar Poema</button>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="modal">
+        <div class="modal-box">
+            <h2>Nuevo Poema</h2>
+            <input type="text" id="newTitle" placeholder="Título" autofocus>
+            <input type="text" id="newBook" placeholder="Nombre del libro">
+            <div class="modal-buttons">
+                <button class="confirm" onclick="confirmNew()">Crear</button>
+                <button class="cancel" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        let poems = [];
+        let current = null;
+
+        function load() {
+            poems = JSON.parse(localStorage.getItem('poems') || '[]');
+            render();
+        }
+
+        function save() {
+            localStorage.setItem('poems', JSON.stringify(poems));
+        }
+
+        function newPoem() {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('newTitle').focus();
+        }
+
+        function confirmNew() {
+            const title = document.getElementById('newTitle').value.trim();
+            const book = document.getElementById('newBook').value.trim() || 'Sin Clasificar';
+
+            if (!title) {
+                alert('Ingresa un título');
+                return;
+            }
+
+            const poem = {
+                id: Date.now(),
+                title,
+                book,
+                content: '',
+                font: 'Georgia, serif',
+                size: '16',
+                align: 'left',
+                titleFont: 'Georgia, serif',
+                titleSize: '28',
+                bookFont: 'Georgia, serif',
+                bookSize: '14',
+                pageSize: 'a4'
+            };
+
+            poems.push(poem);
+            save();
+            closeModal();
+            load();
+            select(poem.id);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newBook').value = '';
+        }
+
+        function select(id) {
+            current = poems.find(p => p.id === id);
+            if (!current) return;
+
+            document.getElementById('editor').value = current.content;
+            document.getElementById('poemTitle').value = current.title;
+            document.getElementById('bookName').value = current.book;
+            document.getElementById('fontFamily').value = current.font;
+            document.getElementById('fontSize').value = current.size;
+            document.getElementById('titleFont').value = current.titleFont || 'Georgia, serif';
+            document.getElementById('titleSize').value = current.titleSize || '28';
+            document.getElementById('bookFont').value = current.bookFont || 'Georgia, serif';
+            document.getElementById('bookSize').value = current.bookSize || '14';
+            document.getElementById('pageSize').value = current.pageSize;
+
+            applyFormat();
+            updateStats();
+            render();
+        }
+
+        function render() {
+            const list = document.getElementById('poemsList');
+            list.innerHTML = '';
+
+            poems.forEach(p => {
+                const li = document.createElement('li');
+                li.className = `poem-item ${p.id === current?.id ? 'active' : ''}`;
+                li.onclick = () => select(p.id);
+                li.innerHTML = `
+                    <div class="poem-item-title">${p.title}</div>
+                    <div class="poem-item-book">${p.book}</div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function filterPoems() {
+            const search = document.getElementById('search').value.toLowerCase();
+            document.querySelectorAll('.poem-item').forEach(item => {
+                const title = item.querySelector('.poem-item-title').textContent.toLowerCase();
+                item.style.display = title.includes(search) ? 'block' : 'none';
+            });
+        }
+
+        function savePoem() {
+            if (!current) return;
+            current.content = document.getElementById('editor').value;
+            current.title = document.getElementById('poemTitle').value || 'Sin Título';
+            current.book = document.getElementById('bookName').value || 'Sin Clasificar';
+            current.font = document.getElementById('fontFamily').value;
+            current.size = document.getElementById('fontSize').value;
+            current.titleFont = document.getElementById('titleFont').value;
+            current.titleSize = document.getElementById('titleSize').value;
+            current.bookFont = document.getElementById('bookFont').value;
+            current.bookSize = document.getElementById('bookSize').value;
+            save();
+            render();
+            updateStats();
+        }
+
+        function applyFormat() {
+            const font = document.getElementById('fontFamily').value;
+            const size = document.getElementById('fontSize').value;
+
+            document.getElementById('editor').style.fontFamily = font;
+            document.getElementById('editor').style.fontSize = size + 'px';
+        }
+
+        function setAlign(align) {
+            document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('editor').style.textAlign = align;
+
+            if (current) {
+                current.align = align;
+                save();
+            }
+        }
+
+        function updateStats() {
+            if (!current) {
+                document.getElementById('wordCount').textContent = '0';
+                document.getElementById('charCount').textContent = '0';
+                document.getElementById('lineCount').textContent = '0';
+                document.getElementById('charNoSpaceCount').textContent = '0';
+                return;
+            }
+
+            const text = document.getElementById('editor').value;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            const chars = text.length;
+            const lines = text.split('\n').filter(l => l.trim().length > 0).length;
+            const charsNoSpace = text.replace(/\s/g, '').length;
+
+            document.getElementById('wordCount').textContent = words;
+            document.getElementById('charCount').textContent = chars;
+            document.getElementById('lineCount').textContent = lines;
+            document.getElementById('charNoSpaceCount').textContent = charsNoSpace;
+        }
+
+        function exportPDF() {
+            if (!current) {
+                alert('Selecciona un poema');
+                return;
+            }
+
+            const el = document.createElement('div');
+            el.style.padding = '40px';
+            el.style.lineHeight = '1.8';
+            el.style.whiteSpace = 'pre-wrap';
+
+            const titleDiv = document.createElement('div');
+            titleDiv.style.fontFamily = current.titleFont || 'Georgia, serif';
+            titleDiv.style.fontSize = (current.titleSize || '28') + 'px';
+            titleDiv.style.textAlign = 'center';
+            titleDiv.style.marginBottom = '10px';
+            titleDiv.style.fontWeight = 'bold';
+            titleDiv.textContent = current.title;
+
+            const bookDiv = document.createElement('div');
+            bookDiv.style.fontFamily = current.bookFont || 'Georgia, serif';
+            bookDiv.style.fontSize = (current.bookSize || '14') + 'px';
+            bookDiv.style.textAlign = 'center';
+            bookDiv.style.color = '#999';
+            bookDiv.style.marginBottom = '30px';
+            bookDiv.textContent = current.book;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.style.fontFamily = current.font;
+            contentDiv.style.fontSize = current.size + 'px';
+            contentDiv.style.textAlign = current.align;
+            contentDiv.innerHTML = current.content.replace(/\n/g, '<br>');
+
+            el.appendChild(titleDiv);
+            el.appendChild(bookDiv);
+            el.appendChild(contentDiv);
+
+            html2pdf().set({
+                margin: 10,
+                filename: current.title + '.pdf',
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            }).from(el).save();
+        }
+
+        function exportTXT() {
+            if (!current) {
+                alert('Selecciona un poema');
+                return;
+            }
+
+            const txt = `${current.title}\n${current.book}\n\n${current.content}`;
+            const blob = new Blob([txt], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = current.title + '.txt';
+            a.click();
+        }
+
+        function exportHTML() {
+            if (!current) {
+                alert('Selecciona un poema');
+                return;
+            }
+
+            const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${current.title}</title>
+    <style>
+        body { font-family: ${current.font}; font-size: ${current.size}px; text-align: ${current.align}; padding: 40px; }
+        h1 { font-family: ${current.titleFont}; font-size: ${current.titleSize}px; text-align: center; }
+        .book { font-family: ${current.bookFont}; font-size: ${current.bookSize}px; text-align: center; color: #999; }
+    </style>
+</head>
+<body>
+    <h1>${current.title}</h1>
+    <p class="book">${current.book}</p>
+    <pre>${current.content}</pre>
+</body>
+</html>`;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = current.title + '.html';
+            a.click();
+        }
+
+        function exportMD() {
+            if (!current) {
+                alert('Selecciona un poema');
+                return;
+            }
+
+            const md = `# ${current.title}\n\n**${current.book}**\n\n---\n\n${current.content}`;
+            const blob = new Blob([md], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = current.title + '.md';
+            a.click();
+        }
+
+        function deletePoem() {
+            if (!current) {
+                alert('Selecciona un poema');
+                return;
+            }
+
+            if (confirm(`¿Eliminar "${current.title}"?`)) {
+                poems = poems.filter(p => p.id !== current.id);
+                current = null;
+                save();
+                load();
+            }
+        }
+
+        window.addEventListener('beforeunload', savePoem);
+        load();
+    </script>
+</body>
+</html>
